@@ -1,262 +1,83 @@
 <!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time Tracker NM - UI</title>
-  <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="container">
-    <h1>⏱️ Time Tracker NM</h1>
-
-    <div class="section">
-      <h2>📋 Planowanie czasu</h2>
-      <div class="input-group">
-        <label>Godziny:</label>
-        <input type="number" id="plannedHours" min="0" max="999" value="0">
-        <label>Minuty:</label>
-        <input type="number" id="plannedMinutes" min="0" max="59" value="0">
-        <button id="btnPlanned">Zapisz</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>⏰ Już przepracowany czas</h2>
-      <div class="input-group">
-        <label>Godziny:</label>
-        <input type="number" id="spentHours" min="0" max="999" value="0">
-        <label>Minuty:</label>
-        <input type="number" id="spentMinutes" min="0" max="59" value="0">
-        <button id="btnSpent">Zapisz</button>
-      </div>
-    </div>
-
-    <div class="section progress-section">
-      <h2>📊 Postęp zadania</h2>
-      <div class="time-info">
-        <span class="time-planned">Planowane: <span id="displayPlanned">0:00</span></span>
-        <span class="time-spent">Przepracowane: <span id="displaySpent">0:00</span></span>
-        <span class="time-remaining">Pozostało: <span id="displayRemaining">0:00</span></span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-    </div>
-
-    <div class="section timer-section">
-      <h2>⏱️ Timer na żywo</h2>
-      <div class="timer-display" id="timerDisplay">00:00:00</div>
-      <div class="status stopped" id="timerStatus">Timer zatrzymany</div>
-      <div class="timer-buttons">
-        <button class="btn-start" id="btnStart">Start</button>
-        <button class="btn-stop" id="btnStop">Stop</button>
-        <button class="btn-reset" id="btnReset">Reset</button>
-        <button class="btn-save" id="btnSave">Dodaj</button>
-      </div>
-    </div>
-
-    <div class="section" id="historySection">
-      <h2>🗂 Historia wpisów</h2>
-      <ul id="historyList" class="history-list"></ul>
-    </div>
-  </div>
-
-  <script>
-    var t = TrelloPowerUp.iframe();
-    var args = t.arg() || {};
-    var miniMode = args.mode === 'mini';
-
-    var timerInterval = null;
-    var currentTimerSeconds = 0;
-    var isTimerRunning = false;
-
-    // heartbeat every 5s when timer running
-    setInterval(function(){
-      if(isTimerRunning){
-        t.set('card','shared','_hb', Date.now()).catch(function(){});
-      }
-    }, 5000);
-
-    function postComment(msg){
-      if (typeof t.comment === 'function'){
-        t.comment(msg).catch(function(){});
-      }
-    }
-
-    function loadTimeData(){
-      return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0, history: [] });
-    }
-    function saveTimeData(data){ return t.set('card','shared','timeData',data); }
-
-    function pushHistoryEntry(type, minutes, note){
-      loadTimeData().then(function(d){
-        d.history = d.history || [];
-        d.history.push({ type:type, minutes:minutes, ts:new Date().toISOString(), note: note || '' });
-        saveTimeData(d).then(function(){ renderHistory(d.history); });
-      });
-    }
-
-    function renderHistory(list){
-      var ul = document.getElementById('historyList');
-      if(!ul) return;
-      ul.innerHTML = '';
-      (list||[]).slice().reverse().forEach(function(item){
-        var li = document.createElement('li');
-        var base = '[' + new Date(item.ts).toLocaleString() + '] ' + item.type + ': ' + (item.minutes||0) + ' min';
-        if(item.note && item.note.trim()){
-          base += ' – ' + item.note.trim();
-        }
-        li.textContent = base;
-        ul.appendChild(li);
-      });
-    }
-
-    function formatTime(totalMinutes){
-      var h = Math.floor(totalMinutes/60);
-      var m = totalMinutes % 60;
-      return h>0 ? h + ':' + m.toString().padStart(2,'0') : '' + m;
-    }
-    function formatTimerTime(seconds){
-      var h = Math.floor(seconds/3600);
-      var m = Math.floor((seconds % 3600)/60);
-      var s = seconds % 60;
-      return h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
-    }
-
-    function updateDisplay(){
-      loadTimeData().then(function(d){
-        var planned = d.plannedMinutes;
-        var spent   = d.spentMinutes;
-        var remaining = Math.max(0, planned - spent);
-
-        document.getElementById('displayPlanned').textContent = formatTime(planned);
-        document.getElementById('displaySpent').textContent   = formatTime(spent);
-        document.getElementById('displayRemaining').textContent = formatTime(remaining);
-
-        var progress = planned>0 ? Math.min(100,(spent/planned)*100) : 0;
-        document.getElementById('progressFill').style.width = progress + '%';
-
-        document.getElementById('plannedHours').value = Math.floor(planned/60);
-        document.getElementById('plannedMinutes').value = planned % 60;
-        document.getElementById('spentHours').value = Math.floor(spent/60);
-        document.getElementById('spentMinutes').value = spent % 60;
-
-        renderHistory(d.history || []);
-
-        if(d.timerRunning && d.timerStart){
-          var diffSec = Math.floor((Date.now() - d.timerStart)/1000);
-          currentTimerSeconds = diffSec;
-          isTimerRunning = true;
-          document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
-          document.getElementById('timerStatus').className = 'status running';
-          if(!timerInterval){
-            timerInterval = setInterval(function(){
-              currentTimerSeconds++;
-              document.getElementById('timerDisplay').textContent = formatTimerTime(currentTimerSeconds);
-            },1000);
-          }
-        }
-      });
-    }
-
-    function startTimer(){
-      if(!isTimerRunning){
-        isTimerRunning = true;
-        document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
-        document.getElementById('timerStatus').className = 'status running';
-        timerInterval = setInterval(function(){
-          currentTimerSeconds++;
-          document.getElementById('timerDisplay').textContent = formatTimerTime(currentTimerSeconds);
-        },1000);
-      }
-    }
-    function stopTimer(){
-      if(isTimerRunning){
-        isTimerRunning = false;
-        clearInterval(timerInterval);
-        timerInterval = null;
-        document.getElementById('timerStatus').textContent = 'Timer zatrzymany';
-        document.getElementById('timerStatus').className = 'status stopped';
-      }
-    }
-    function resetTimer(){
-      stopTimer();
-      currentTimerSeconds = 0;
-      document.getElementById('timerDisplay').textContent = formatTimerTime(0);
-    }
-    function addTimerToSpent(){
-      if(currentTimerSeconds > 0){
-        var timerMinutes = Math.ceil(currentTimerSeconds/60);
-        loadTimeData().then(function(d){
-          d.spentMinutes += timerMinutes;
-          saveTimeData(d).then(function(){
-            updateDisplay();
-            resetTimer();
-            t.alert({ message: 'Dodano ' + timerMinutes + ' minut do przepracowanego czasu!', duration: 3 });
-            postComment('Dodano ' + timerMinutes + ' minut z timera do przepracowanego czasu.');
-            var noteTimer = prompt('Komentarz do wpisu (opcjonalnie):','');
-            pushHistoryEntry('timer-add', timerMinutes, noteTimer);
-          });
-        });
-      } else {
-        t.alert({ message: 'Timer nie był uruchomiony!', duration: 3 });
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function(){
-      if(miniMode){
-        document.querySelectorAll('.section').forEach(function(sec){
-          var id = sec.id || '';
-          if(id !== 'historySection' && !sec.classList.contains('progress-section') && !sec.classList.contains('timer-section')){
-            sec.style.display = 'none';
-          }
-        });
-        var h1 = document.querySelector('h1'); if(h1) h1.style.display='none';
-        var hist = document.getElementById('historySection'); if(hist) hist.style.display='none';
-      }
-
-      document.getElementById('btnPlanned').addEventListener('click', function(){
-        var h = parseInt(document.getElementById('plannedHours').value)||0;
-        var m = parseInt(document.getElementById('plannedMinutes').value)||0;
-        var total = h*60 + m;
-        loadTimeData().then(function(d){
-          d.plannedMinutes = total;
-          saveTimeData(d).then(function(){
-            updateDisplay();
-            t.alert({ message: 'Planowany czas zapisany!', duration: 3 });
-            postComment('Planowany czas ustawiony na ' + total + ' minut.');
-            var notePlan = prompt('Komentarz do wpisu (opcjonalnie):','');
-            pushHistoryEntry('plan', total, notePlan);
-          });
-        });
-      });
-
-      document.getElementById('btnSpent').addEventListener('click', function(){
-        var h = parseInt(document.getElementById('spentHours').value)||0;
-        var m = parseInt(document.getElementById('spentMinutes').value)||0;
-        var total = h*60 + m;
-        loadTimeData().then(function(d){
-          d.spentMinutes = total;
-          saveTimeData(d).then(function(){
-            updateDisplay();
-            t.alert({ message: 'Przepracowany czas zapisany!', duration: 3 });
-            postComment('Zaktualizowano przepracowany czas do ' + total + ' minut.');
-            var noteSpent = prompt('Komentarz do wpisu (opcjonalnie):','');
-            pushHistoryEntry('spent-set', total, noteSpent);
-          });
-        });
-      });
-
-      document.getElementById('btnStart').addEventListener('click', startTimer);
-      document.getElementById('btnStop').addEventListener('click', stopTimer);
-      document.getElementById('btnReset').addEventListener('click', resetTimer);
-      document.getElementById('btnSave').addEventListener('click', addTimerToSpent);
-
-      updateDisplay();
-      t.render(function(){ return t.sizeTo(document.body).catch(function(){}); });
-    });
-  </script>
-</body>
-</html>
+<html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Tracker NM - UI</title>
+<script src="https://p.trellocdn.com/power-up.min.js"></script>
+<link rel="stylesheet" href="styles.css"></head><body>
+<div class="container">
+<h1>⏱️ Time Tracker NM</h1>
+<div class="section"><h2>📋 Planowanie czasu</h2><div class="input-group">
+<label>Godziny:</label><input type="number" id="plannedHours" min="0" max="999" value="0">
+<label>Minuty:</label><input type="number" id="plannedMinutes" min="0" max="59" value="0">
+<button id="btnPlanned">Zapisz</button></div></div>
+<div class="section"><h2>⏰ Już przepracowany czas</h2><div class="input-group">
+<label>Godziny:</label><input type="number" id="spentHours" min="0" max="999" value="0">
+<label>Minuty:</label><input type="number" id="spentMinutes" min="0" max="59" value="0">
+<button id="btnSpent">Zapisz</button></div></div>
+<div class="section progress-section"><h2>📊 Postęp zadania</h2>
+<div class="time-info"><span class="time-planned">Planowane: <span id="displayPlanned">0:00</span></span>
+<span class="time-spent">Przepracowane: <span id="displaySpent">0:00</span></span>
+<span class="time-remaining">Pozostało: <span id="displayRemaining">0:00</span></span></div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div></div>
+<div class="section timer-section"><h2>⏱️ Timer na żywo</h2>
+<div class="timer-display" id="timerDisplay">00:00:00</div>
+<div class="status stopped" id="timerStatus">Timer zatrzymany</div>
+<div class="timer-buttons">
+<button class="btn-start" id="btnStart">Start</button>
+<button class="btn-stop" id="btnStop">Stop</button>
+<button class="btn-reset" id="btnReset">Reset</button>
+<button class="btn-save" id="btnSave">Dodaj</button></div></div>
+<div class="section" id="historySection"><h2>🗂 Historia wpisów</h2>
+<ul id="historyList" class="history-list"></ul></div></div>
+<script>
+var t=TrelloPowerUp.iframe();var args=t.arg()||{};var miniMode=args.mode==='mini';
+var timerInterval=null,currentTimerSeconds=0,isTimerRunning=false;
+setInterval(function(){if(isTimerRunning){t.set('card','shared','_hb',Date.now()).catch(function(){});}},5000);
+function postComment(msg){if(typeof t.comment==='function'){t.comment(msg).catch(function(){});}}
+function loadTimeData(){return t.get('card','shared','timeData',{plannedMinutes:0,spentMinutes:0,timerRunning:false,timerStart:0,history:[]});}
+function saveTimeData(d){return t.set('card','shared','timeData',d);}
+function pushHistoryEntry(type,minutes,note){loadTimeData().then(function(d){d.history=d.history||[];d.history.push({type:type,minutes:minutes,ts:new Date().toISOString(),note:note||''});saveTimeData(d).then(function(){renderHistory(d.history);});});}
+function renderHistory(list){
+ var ul=document.getElementById('historyList');if(!ul)return;ul.innerHTML='';
+ (list||[]).slice().reverse().forEach(function(item,revIdx){
+  var originalIdx=(list.length-1)-revIdx;
+  var li=document.createElement('li');li.setAttribute('data-idx',originalIdx);
+  var base='['+new Date(item.ts).toLocaleString()+'] '+item.type+': '+(item.minutes||0)+' min';
+  if(item.note&&item.note.trim()){base+=' – '+item.note.trim();}
+  var textSpan=document.createElement('span');textSpan.textContent=base;li.appendChild(textSpan);
+  var btnEdit=document.createElement('button');btnEdit.textContent='Edytuj';btnEdit.style.marginLeft='8px';btnEdit.onclick=function(){editHistory(originalIdx);};
+  var btnDel=document.createElement('button');btnDel.textContent='Usuń';btnDel.style.marginLeft='4px';btnDel.onclick=function(){deleteHistory(originalIdx);};
+  li.appendChild(btnEdit);li.appendChild(btnDel);ul.appendChild(li);
+ });}
+function editHistory(idx){loadTimeData().then(function(d){if(!d.history||typeof d.history[idx]==='undefined')return;var item=d.history[idx];var newMinutesStr=prompt('Nowa liczba minut (pozostaw puste aby nie zmieniać):',item.minutes);var newMinutes=parseInt(newMinutesStr,10);if(isNaN(newMinutes))newMinutes=item.minutes;var newNote=prompt('Edytuj komentarz:',item.note||'');if(newNote===null)newNote=item.note||'';d.history[idx].minutes=newMinutes;d.history[idx].note=newNote;saveTimeData(d).then(function(){renderHistory(d.history);});});}
+function deleteHistory(idx){if(!confirm('Na pewno usunąć ten wpis?'))return;loadTimeData().then(function(d){if(!d.history||typeof d.history[idx]==='undefined')return;d.history.splice(idx,1);saveTimeData(d).then(function(){renderHistory(d.history);});});}
+function formatTime(m){var h=Math.floor(m/60),mi=m%60;return h>0?h+':'+mi.toString().padStart(2,'0'):''+mi;}
+function formatTimerTime(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return[h,m,sec].map(n=>n.toString().padStart(2,'0')).join(':');}
+function updateDisplay(){loadTimeData().then(function(d){var planned=d.plannedMinutes,spent=d.spentMinutes,remaining=Math.max(0,planned-spent);
+document.getElementById('displayPlanned').textContent=formatTime(planned);
+document.getElementById('displaySpent').textContent=formatTime(spent);
+document.getElementById('displayRemaining').textContent=formatTime(remaining);
+var progress=planned>0?Math.min(100,(spent/planned)*100):0;document.getElementById('progressFill').style.width=progress+'%';
+document.getElementById('plannedHours').value=Math.floor(planned/60);document.getElementById('plannedMinutes').value=planned%60;
+document.getElementById('spentHours').value=Math.floor(spent/60);document.getElementById('spentMinutes').value=spent%60;
+renderHistory(d.history||[]);
+if(d.timerRunning&&d.timerStart){var diffSec=Math.floor((Date.now()-d.timerStart)/1000);currentTimerSeconds=diffSec;isTimerRunning=true;
+document.getElementById('timerStatus').textContent='Timer uruchomiony';document.getElementById('timerStatus').className='status running';
+if(!timerInterval){timerInterval=setInterval(function(){currentTimerSeconds++;document.getElementById('timerDisplay').textContent=formatTimerTime(currentTimerSeconds);},1000);}}
+});}
+function startTimer(){if(!isTimerRunning){isTimerRunning=true;document.getElementById('timerStatus').textContent='Timer uruchomiony';document.getElementById('timerStatus').className='status running';
+timerInterval=setInterval(function(){currentTimerSeconds++;document.getElementById('timerDisplay').textContent=formatTimerTime(currentTimerSeconds);},1000);}}
+function stopTimer(){if(isTimerRunning){isTimerRunning=false;clearInterval(timerInterval);timerInterval=null;document.getElementById('timerStatus').textContent='Timer zatrzymany';document.getElementById('timerStatus').className='status stopped';}}
+function resetTimer(){stopTimer();currentTimerSeconds=0;document.getElementById('timerDisplay').textContent=formatTimerTime(0);}
+function addTimerToSpent(){if(currentTimerSeconds>0){var timerMinutes=Math.ceil(currentTimerSeconds/60);loadTimeData().then(function(d){d.spentMinutes+=timerMinutes;saveTimeData(d).then(function(){updateDisplay();resetTimer();t.alert({message:'Dodano '+timerMinutes+' minut do przepracowanego czasu!',duration:3});postComment('Dodano '+timerMinutes+' minut z timera do przepracowanego czasu.');var noteTimer=prompt('Komentarz do wpisu (opcjonalnie):','');pushHistoryEntry('timer-add',timerMinutes,noteTimer);});});}else{t.alert({message:'Timer nie był uruchomiony!',duration:3});}}
+document.addEventListener('DOMContentLoaded',function(){
+ if(miniMode){document.querySelectorAll('.section').forEach(function(sec){var id=sec.id||'';if(id!=='historySection'&&!sec.classList.contains('progress-section')&&!sec.classList.contains('timer-section')){sec.style.display='none';}});
+ var h1=document.querySelector('h1');if(h1)h1.style.display='none';var hist=document.getElementById('historySection');if(hist)hist.style.display='none';}
+ document.getElementById('btnPlanned').addEventListener('click',function(){var h=parseInt(document.getElementById('plannedHours').value)||0;var m=parseInt(document.getElementById('plannedMinutes').value)||0;var total=h*60+m;
+ loadTimeData().then(function(d){d.plannedMinutes=total;saveTimeData(d).then(function(){updateDisplay();t.alert({message:'Planowany czas zapisany!',duration:3});postComment('Planowany czas ustawiony na '+total+' minut.');var notePlan=prompt('Komentarz do wpisu (opcjonalnie):','');pushHistoryEntry('plan',total,notePlan);});});});
+ document.getElementById('btnSpent').addEventListener('click',function(){var h=parseInt(document.getElementById('spentHours').value)||0;var m=parseInt(document.getElementById('spentMinutes').value)||0;var total=h*60+m;
+ loadTimeData().then(function(d){d.spentMinutes=total;saveTimeData(d).then(function(){updateDisplay();t.alert({message:'Przepracowany czas zapisany!',duration:3});postComment('Zaktualizowano przepracowany czas do '+total+' minut.');var noteSpent=prompt('Komentarz do wpisu (opcjonalnie):','');pushHistoryEntry('spent-set',total,noteSpent);});});});
+ document.getElementById('btnStart').addEventListener('click',startTimer);
+ document.getElementById('btnStop').addEventListener('click',stopTimer);
+ document.getElementById('btnReset').addEventListener('click',resetTimer);
+ document.getElementById('btnSave').addEventListener('click',addTimerToSpent);
+ updateDisplay();t.render(function(){return t.sizeTo(document.body).catch(function(){});});});</script></body></html>
