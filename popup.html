@@ -56,10 +56,17 @@
         <button class="btn-save" id="btnSave">Dodaj</button>
       </div>
     </div>
+
+    <div class="section" id="historySection">
+      <h2>🗂 Historia wpisów</h2>
+      <ul id="historyList" class="history-list"></ul>
+    </div>
   </div>
 
   <script>
     var t = TrelloPowerUp.iframe();
+    var args = t.arg() || {};
+    var miniMode = args.mode === 'mini';
 
     var timerInterval = null;
     var currentTimerSeconds = 0;
@@ -72,9 +79,28 @@
     }
 
     function loadTimeData(){
-      return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0 });
+      return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0, history: [] });
     }
     function saveTimeData(data){ return t.set('card','shared','timeData',data); }
+
+    function pushHistoryEntry(type, minutes){
+      loadTimeData().then(function(d){
+        d.history = d.history || [];
+        d.history.push({ type:type, minutes:minutes, ts:new Date().toISOString() });
+        saveTimeData(d).then(function(){ renderHistory(d.history); });
+      });
+    }
+
+    function renderHistory(list){
+      var ul = document.getElementById('historyList');
+      if(!ul) return;
+      ul.innerHTML = '';
+      (list||[]).slice().reverse().forEach(function(item){
+        var li = document.createElement('li');
+        li.textContent = '[' + new Date(item.ts).toLocaleString() + '] ' + item.type + ': ' + item.minutes + ' min';
+        ul.appendChild(li);
+      });
+    }
 
     function formatTime(totalMinutes){
       var h = Math.floor(totalMinutes/60);
@@ -99,13 +125,14 @@
         document.getElementById('displayRemaining').textContent = formatTime(remaining);
 
         var progress = planned>0 ? Math.min(100,(spent/planned)*100) : 0;
-        var pf = document.getElementById('progressFill');
-        pf.style.width = progress + '%';
+        document.getElementById('progressFill').style.width = progress + '%';
 
         document.getElementById('plannedHours').value = Math.floor(planned/60);
         document.getElementById('plannedMinutes').value = planned % 60;
         document.getElementById('spentHours').value = Math.floor(spent/60);
         document.getElementById('spentMinutes').value = spent % 60;
+
+        renderHistory(d.history || []);
       });
     }
 
@@ -143,6 +170,7 @@
             resetTimer();
             t.alert({ message: 'Dodano ' + timerMinutes + ' minut do przepracowanego czasu!', duration: 3 });
             postComment('Dodano ' + timerMinutes + ' minut z timera do przepracowanego czasu.');
+            pushHistoryEntry('timer-add', timerMinutes);
           });
         });
       } else {
@@ -151,6 +179,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', function(){
+      if(miniMode){
+        document.querySelectorAll('.section').forEach(function(sec){
+          if(!sec.classList.contains('progress-section')) sec.style.display = 'none';
+        });
+        var h1 = document.querySelector('h1'); if(h1) h1.style.display='none';
+        var hist = document.getElementById('historySection'); if(hist) hist.style.display='none';
+      }
+
       document.getElementById('btnPlanned').addEventListener('click', function(){
         var h = parseInt(document.getElementById('plannedHours').value)||0;
         var m = parseInt(document.getElementById('plannedMinutes').value)||0;
@@ -161,6 +197,7 @@
             updateDisplay();
             t.alert({ message: 'Planowany czas zapisany!', duration: 3 });
             postComment('Planowany czas ustawiony na ' + total + ' minut.');
+            pushHistoryEntry('plan', total);
           });
         });
       });
@@ -175,6 +212,7 @@
             updateDisplay();
             t.alert({ message: 'Przepracowany czas zapisany!', duration: 3 });
             postComment('Zaktualizowano przepracowany czas do ' + total + ' minut.');
+            pushHistoryEntry('spent-set', total);
           });
         });
       });
