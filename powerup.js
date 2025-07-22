@@ -38,45 +38,70 @@ TrelloPowerUp.initialize({
     }];
   },
   'card-detail-badges': function(t, opts){
-    return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0 })
+    return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0, history: [] })
       .then(function(d){
         var planned = d.plannedMinutes || 0;
         var spent = d.spentMinutes || 0;
         var running = d.timerRunning || false;
         var badges = [];
+
+        // Info badge
         badges.push({
           text: '⏱ ' + (Math.floor(spent/60)+'h '+(spent%60)+'m') + ' / ' + (Math.floor(planned/60)+'h '+(planned%60)+'m'),
           icon: ICON
         });
-        if(planned>0){
+
+        // Progress bar ascii
+        if(planned > 0){
           var percent = Math.min(100,(spent/planned)*100);
           badges.push({ text: makeAsciiBar(percent), icon: ICON });
         }
+
+        // Button to open full tracker
+        badges.push({
+          text: 'Time Tracker',
+          icon: ICON,
+          callback: function(t){
+            return t.modal({
+              title: 'Time Tracker NM',
+              url: 'popup.html',
+              accentColor: '#667eea',
+              fullscreen: true,
+              args: { cardId: opts.context.card }
+            });
+          }
+        });
+
+        // Start / Stop
         if(!running){
           badges.push({
             text: 'Start',
             icon: ICON,
             callback: function(t){
-              return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0 })
+              return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, history: [] })
               .then(function(data){
                 data.timerRunning = true;
                 data.timerStart = Date.now();
+                data.history = data.history || [];
+                data.history.push({ type:'start', minutes:0, ts:new Date().toISOString(), note:'' });
                 return t.set('card','shared','timeData', data);
               }).then(function(){ t.closePopup(); });
             }
           });
-        }else{
+        } else {
           badges.push({
             text: 'Stop',
             icon: ICON,
             callback: function(t){
-              return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0 })
+              return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0, history: [] })
               .then(function(data){
                 var now = Date.now();
-                var diffMin = Math.ceil((now - (data.timerStart||now))/60000);
+                var diffMin = Math.ceil((now - (data.timerStart||now)) / 60000);
                 data.spentMinutes = (data.spentMinutes||0) + diffMin;
                 data.timerRunning = false;
                 data.timerStart = 0;
+                data.history = data.history || [];
+                data.history.push({ type:'stop', minutes:diffMin, ts:new Date().toISOString(), note:'' });
                 return t.set('card','shared','timeData', data).then(function(){
                   if(typeof t.comment === 'function'){
                     return t.comment('Automatycznie dodano '+diffMin+' minut po zatrzymaniu timera.').catch(function(){});
@@ -86,6 +111,7 @@ TrelloPowerUp.initialize({
             }
           });
         }
+
         return badges;
       });
   },

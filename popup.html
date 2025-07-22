@@ -83,10 +83,10 @@
     }
     function saveTimeData(data){ return t.set('card','shared','timeData',data); }
 
-    function pushHistoryEntry(type, minutes){
+    function pushHistoryEntry(type, minutes, note){
       loadTimeData().then(function(d){
         d.history = d.history || [];
-        d.history.push({ type:type, minutes:minutes, ts:new Date().toISOString() });
+        d.history.push({ type:type, minutes:minutes, ts:new Date().toISOString(), note: note || '' });
         saveTimeData(d).then(function(){ renderHistory(d.history); });
       });
     }
@@ -97,7 +97,11 @@
       ul.innerHTML = '';
       (list||[]).slice().reverse().forEach(function(item){
         var li = document.createElement('li');
-        li.textContent = '[' + new Date(item.ts).toLocaleString() + '] ' + item.type + ': ' + item.minutes + ' min';
+        var base = '[' + new Date(item.ts).toLocaleString() + '] ' + item.type + ': ' + (item.minutes||0) + ' min';
+        if(item.note && item.note.trim()){
+          base += ' – ' + item.note.trim();
+        }
+        li.textContent = base;
         ul.appendChild(li);
       });
     }
@@ -170,7 +174,8 @@
             resetTimer();
             t.alert({ message: 'Dodano ' + timerMinutes + ' minut do przepracowanego czasu!', duration: 3 });
             postComment('Dodano ' + timerMinutes + ' minut z timera do przepracowanego czasu.');
-            pushHistoryEntry('timer-add', timerMinutes);
+            var noteTimer = prompt('Komentarz do wpisu (opcjonalnie):','');
+            pushHistoryEntry('timer-add', timerMinutes, noteTimer);
           });
         });
       } else {
@@ -197,7 +202,8 @@
             updateDisplay();
             t.alert({ message: 'Planowany czas zapisany!', duration: 3 });
             postComment('Planowany czas ustawiony na ' + total + ' minut.');
-            pushHistoryEntry('plan', total);
+            var notePlan = prompt('Komentarz do wpisu (opcjonalnie):','');
+            pushHistoryEntry('plan', total, notePlan);
           });
         });
       });
@@ -212,7 +218,8 @@
             updateDisplay();
             t.alert({ message: 'Przepracowany czas zapisany!', duration: 3 });
             postComment('Zaktualizowano przepracowany czas do ' + total + ' minut.');
-            pushHistoryEntry('spent-set', total);
+            var noteSpent = prompt('Komentarz do wpisu (opcjonalnie):','');
+            pushHistoryEntry('spent-set', total, noteSpent);
           });
         });
       });
