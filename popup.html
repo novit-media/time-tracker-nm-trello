@@ -18,7 +18,7 @@
         <input type="number" id="plannedHours" min="0" max="999" value="0">
         <label>Minuty:</label>
         <input type="number" id="plannedMinutes" min="0" max="59" value="0">
-        <button id="btnPlanned">Zapisz planowany czas</button>
+        <button id="btnPlanned">Zapisz</button>
       </div>
     </div>
 
@@ -29,7 +29,7 @@
         <input type="number" id="spentHours" min="0" max="999" value="0">
         <label>Minuty:</label>
         <input type="number" id="spentMinutes" min="0" max="59" value="0">
-        <button id="btnSpent">Zapisz przepracowany czas</button>
+        <button id="btnSpent">Zapisz</button>
       </div>
     </div>
 
@@ -50,10 +50,10 @@
       <div class="timer-display" id="timerDisplay">00:00:00</div>
       <div class="status stopped" id="timerStatus">Timer zatrzymany</div>
       <div class="timer-buttons">
-        <button class="btn-start" id="btnStart">▶️ Start</button>
-        <button class="btn-stop" id="btnStop">⏸️ Stop</button>
-        <button class="btn-reset" id="btnReset">🔄 Reset</button>
-        <button class="btn-save" id="btnSave">💾 Dodaj do przepracowanego</button>
+        <button class="btn-start" id="btnStart">Start</button>
+        <button class="btn-stop" id="btnStop">Stop</button>
+        <button class="btn-reset" id="btnReset">Reset</button>
+        <button class="btn-save" id="btnSave">Dodaj</button>
       </div>
     </div>
   </div>
@@ -72,7 +72,7 @@
     }
 
     function loadTimeData(){
-      return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0 });
+      return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0 });
     }
     function saveTimeData(data){ return t.set('card','shared','timeData',data); }
 
@@ -85,9 +85,7 @@
       var h = Math.floor(seconds/3600);
       var m = Math.floor((seconds % 3600)/60);
       var s = seconds % 60;
-      return h.toString().padStart(2,'0') + ':' +
-             m.toString().padStart(2,'0') + ':' +
-             s.toString().padStart(2,'0');
+      return h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
     }
 
     function updateDisplay(){
@@ -103,9 +101,6 @@
         var progress = planned>0 ? Math.min(100,(spent/planned)*100) : 0;
         var pf = document.getElementById('progressFill');
         pf.style.width = progress + '%';
-        if(progress >= 100) pf.style.background = 'linear-gradient(45deg,#ff6b6b,#ff4b2b)';
-        else if(progress >= 80) pf.style.background = 'linear-gradient(45deg,#ffa726,#ffcc02)';
-        else pf.style.background = 'linear-gradient(45deg,#56ab2f,#a8e6cf)';
 
         document.getElementById('plannedHours').value = Math.floor(planned/60);
         document.getElementById('plannedMinutes').value = planned % 60;
@@ -164,7 +159,7 @@
           d.plannedMinutes = total;
           saveTimeData(d).then(function(){
             updateDisplay();
-            t.alert({ message: 'Planowany czas został zapisany!', duration: 3 });
+            t.alert({ message: 'Planowany czas zapisany!', duration: 3 });
             postComment('Planowany czas ustawiony na ' + total + ' minut.');
           });
         });
@@ -178,7 +173,7 @@
           d.spentMinutes = total;
           saveTimeData(d).then(function(){
             updateDisplay();
-            t.alert({ message: 'Przepracowany czas został zapisany!', duration: 3 });
+            t.alert({ message: 'Przepracowany czas zapisany!', duration: 3 });
             postComment('Zaktualizowano przepracowany czas do ' + total + ' minut.');
           });
         });
@@ -190,7 +185,6 @@
       document.getElementById('btnSave').addEventListener('click', addTimerToSpent);
 
       updateDisplay();
-
       t.render(function(){ return t.sizeTo(document.body).catch(function(){}); });
     });
   </script>

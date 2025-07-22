@@ -8,8 +8,8 @@
     "board-buttons",
     "card-buttons",
     "card-badges",
-    "card-back-section",
     "card-detail-badges",
+    "card-back-section",
     "show-settings"
   ],
   "connectUrl": "https://novit-media.github.io/time-tracker-nm-trello/connector.html",
