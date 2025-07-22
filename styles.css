@@ -26,3 +26,7 @@ button:hover{background:#0747A6;}
 .btn-start{background:#36B37E;} .btn-stop{background:#FF5630;} .btn-reset{background:#FFAB00;} .btn-save{background:#0052CC;}
 .history-list{list-style:none;margin:0;padding:0;font-size:13px;color:#5e6c84;max-height:200px;overflow-y:auto;border-top:1px solid #dfe1e6;padding-top:8px;}
 .history-list li{margin-bottom:6px;}
+.history-list li button.hist-btn-edit,.history-list li button.hist-btn-del{margin-left:6px;padding:2px 6px;font-size:11px;line-height:1.4;background:#0052CC;color:#fff;border:none;border-radius:3px;cursor:pointer;}
+.history-list li button.hist-btn-del{background:#FF5630;}
+.history-list li button.hist-btn-edit:hover{background:#0747A6;}
+.history-list li button.hist-btn-del:hover{background:#BF2600;}
