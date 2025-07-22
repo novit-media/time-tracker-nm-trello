@@ -1,0 +1,15 @@
+{
+  "name": "Time Tracker NM",
+  "details": "Zaawansowany time tracker dla zadań Trello",
+  "author": "Twoje Imię",
+  "authorEmail": "twoj-email@example.com",
+  "authorUrl": "https://twoja-strona.com",
+  "capabilities": [
+    "card-badges",
+    "card-buttons"
+  ],
+  "connectorUrl": "./index.html",
+  "icon": {
+    "url": "./icon.png"
+  }
+}
