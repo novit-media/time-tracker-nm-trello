@@ -14,7 +14,7 @@
             min-height: 100vh;
             color: #333;
         }
-        
+
         .container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(15px);
@@ -24,7 +24,7 @@
             max-width: 600px;
             margin: 0 auto;
         }
-        
+
         h1 {
             text-align: center;
             color: #333;
@@ -36,7 +36,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .section {
             background: rgba(255, 255, 255, 0.7);
             border-radius: 15px;
@@ -44,27 +44,27 @@
             margin-bottom: 20px;
             border-left: 4px solid #667eea;
         }
-        
+
         .section h2 {
             margin-top: 0;
             color: #333;
             font-size: 1.3em;
             font-weight: 600;
         }
-        
+
         .input-group {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 15px;
         }
-        
+
         label {
             min-width: 120px;
             font-weight: 500;
             color: #555;
         }
-        
+
         input[type="number"] {
             border: 2px solid #ddd;
             border-radius: 8px;
@@ -73,12 +73,12 @@
             font-size: 14px;
             transition: border-color 0.3s;
         }
-        
+
         input[type="number"]:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         button {
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
@@ -92,16 +92,16 @@
             margin-right: 10px;
             margin-bottom: 10px;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
-        
+
         .timer-section {
             text-align: center;
         }
-        
+
         .timer-display {
             font-size: 3em;
             font-weight: bold;
@@ -113,11 +113,11 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .progress-section {
             margin: 20px 0;
         }
-        
+
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -126,25 +126,25 @@
             overflow: hidden;
             margin: 10px 0;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(45deg, #56ab2f, #a8e6cf);
             transition: width 0.3s ease;
             border-radius: 10px;
         }
-        
+
         .time-info {
             display: flex;
             justify-content: space-between;
             margin: 10px 0;
             font-weight: 500;
         }
-        
+
         .time-planned { color: #667eea; }
         .time-spent { color: #56ab2f; }
         .time-remaining { color: #ff6b6b; }
-        
+
         .status {
             text-align: center;
             padding: 15px;
@@ -153,31 +153,31 @@
             font-weight: 600;
             font-size: 1.1em;
         }
-        
+
         .status.running {
             background: linear-gradient(45deg, rgba(86, 171, 47, 0.2), rgba(168, 230, 207, 0.2));
             color: #2d7d32;
             border: 2px solid #56ab2f;
         }
-        
+
         .status.stopped {
             background: linear-gradient(45deg, rgba(255, 107, 107, 0.2), rgba(255, 75, 43, 0.2));
             color: #c62828;
             border: 2px solid #ff6b6b;
         }
-        
+
         .timer-buttons {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         .btn-start { background: linear-gradient(45deg, #56ab2f, #a8e6cf); }
         .btn-stop { background: linear-gradient(45deg, #ff416c, #ff4b2b); }
         .btn-reset { background: linear-gradient(45deg, #ffa726, #ffcc02); }
         .btn-save { background: linear-gradient(45deg, #667eea, #764ba2); }
-        
+
         .card-badge {
             background: #667eea;
             color: white;
@@ -191,7 +191,7 @@
 <body>
     <div class="container">
         <h1>⏱️ Time Tracker NM</h1>
-        
+
         <div class="section">
             <h2>📋 Planowanie czasu</h2>
             <div class="input-group">
@@ -202,7 +202,7 @@
                 <button onclick="setPlannedTime()">Zapisz planowany czas</button>
             </div>
         </div>
-        
+
         <div class="section">
             <h2>⏰ Już przepracowany czas</h2>
             <div class="input-group">
@@ -213,7 +213,7 @@
                 <button onclick="setSpentTime()">Zapisz przepracowany czas</button>
             </div>
         </div>
-        
+
         <div class="section progress-section">
             <h2>📊 Postęp zadania</h2>
             <div class="time-info">
@@ -225,7 +225,7 @@
                 <div class="progress-fill" id="progressFill"></div>
             </div>
         </div>
-        
+
         <div class="section timer-section">
             <h2>⏱️ Timer na żywo</h2>
             <div class="timer-display" id="timerDisplay">00:00:00</div>
@@ -240,35 +240,77 @@
     </div>
 
     <script>
+        // Sprawdź czy jesteśmy w iframe Trello
+        if (window.parent === window) {
+            // Jeśli otwarte bezpośrednio, pokaż instrukcję
+            document.body.innerHTML = `
+                <div class="container">
+                    <h1>⏱️ Time Tracker NM</h1>
+                    <div class="section">
+                        <h2>📋 Instrukcja</h2>
+                        <p>Ten Power-Up działa tylko w kontekście Trello.</p>
+                        <p>Aby go używać:</p>
+                        <ol>
+                            <li>Przejdź do tablicy Trello</li>
+                            <li>Kliknij w konkretną kartę</li>
+                            <li>Znajdź przycisk "⏱️ Time Tracker NM"</li>
+                        </ol>
+                    </div>
+                </div>
+            `;
+            throw new Error('Not in Trello context');
+        }
+
         // Inicjalizacja Power-Up
         let t = window.TrelloPowerUp.initialize({
+            'show-settings': function(t, options) {
+                // Ta funkcja się wykona gdy klikniesz "Settings" przy Power-Up
+                return t.popup({
+                    title: 'Time Tracker NM - Ustawienia',
+                    url: 'https://novit-media.github.io/time-tracker-nm-trello/index.html',
+                    height: 650
+                });
+            },
+            'board-buttons': function(t, options) {
+                // Przycisk na głównej tablicy
+                return [{
+                    text: '⏱️ Time Tracker NM',
+                    callback: function(t) {
+                        return t.popup({
+                            title: 'Time Tracker NM - Tablicy',
+                            url: 'https://novit-media.github.io/time-tracker-nm-trello/index.html',
+                            height: 650
+                        });
+                    }
+                }];
+            },
             'card-badges': function(t, options) {
                 return t.get('card', 'shared', 'timeData', {})
                 .then(function(timeData) {
                     let badges = [];
-                    
+
                     if (timeData.plannedMinutes > 0) {
                         let plannedHours = Math.floor(timeData.plannedMinutes / 60);
                         let plannedMins = timeData.plannedMinutes % 60;
                         let plannedText = plannedHours > 0 ? `${plannedHours}:${plannedMins.toString().padStart(2, '0')}h` : `${plannedMins}m`;
-                        
+
                         badges.push({
                             text: `⏱️ ${plannedText}`,
                             color: 'blue'
                         });
                     }
-                    
+
                     if (timeData.spentMinutes > 0) {
                         let spentHours = Math.floor(timeData.spentMinutes / 60);
                         let spentMins = timeData.spentMinutes % 60;
                         let spentText = spentHours > 0 ? `${spentHours}:${spentMins.toString().padStart(2, '0')}h` : `${spentMins}m`;
-                        
+
                         badges.push({
                             text: `✅ ${spentText}`,
                             color: 'green'
                         });
                     }
-                    
+
                     return badges;
                 });
             },
@@ -278,12 +320,13 @@
                     callback: function(t) {
                         return t.popup({
                             title: 'Time Tracker NM',
-                            url: './index.html',
-                            height: 600
+                            url: 'https://novit-media.github.io/time-tracker-nm-trello/index.html',
+                            height: 650,
+                            args: { cardId: options.context.card }
                         });
                     }
                 }];
-            }
+            },
         });
 
         // Zmienne globalne
@@ -307,7 +350,7 @@
             let hours = parseInt(document.getElementById('plannedHours').value) || 0;
             let minutes = parseInt(document.getElementById('plannedMinutes').value) || 0;
             let totalMinutes = hours * 60 + minutes;
-            
+
             loadTimeData().then(timeData => {
                 timeData.plannedMinutes = totalMinutes;
                 saveTimeData(timeData).then(() => {
@@ -324,7 +367,7 @@
             let hours = parseInt(document.getElementById('spentHours').value) || 0;
             let minutes = parseInt(document.getElementById('spentMinutes').value) || 0;
             let totalMinutes = hours * 60 + minutes;
-            
+
             loadTimeData().then(timeData => {
                 timeData.spentMinutes = totalMinutes;
                 saveTimeData(timeData).then(() => {
@@ -355,15 +398,15 @@
                 let planned = timeData.plannedMinutes;
                 let spent = timeData.spentMinutes;
                 let remaining = Math.max(0, planned - spent);
-                
+
                 document.getElementById('displayPlanned').textContent = formatTime(planned);
                 document.getElementById('displaySpent').textContent = formatTime(spent);
                 document.getElementById('displayRemaining').textContent = formatTime(remaining);
-                
+
                 // Aktualizuj pasek postępu
                 let progress = planned > 0 ? Math.min(100, (spent / planned) * 100) : 0;
                 document.getElementById('progressFill').style.width = progress + '%';
-                
+
                 // Ustaw kolory w zależności od postępu
                 let progressFill = document.getElementById('progressFill');
                 if (progress >= 100) {
@@ -382,7 +425,7 @@
                 isTimerRunning = true;
                 document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
                 document.getElementById('timerStatus').className = 'status running';
-                
+
                 timerInterval = setInterval(() => {
                     currentTimerSeconds++;
                     document.getElementById('timerDisplay').textContent = formatTimerTime(currentTimerSeconds);
@@ -408,7 +451,7 @@
         function addTimerToSpent() {
             if (currentTimerSeconds > 0) {
                 let timerMinutes = Math.ceil(currentTimerSeconds / 60);
-                
+
                 loadTimeData().then(timeData => {
                     timeData.spentMinutes += timerMinutes;
                     saveTimeData(timeData).then(() => {
@@ -418,7 +461,7 @@
                             message: `Dodano ${timerMinutes} minut do przepracowanego czasu!`,
                             duration: 3
                         });
-                        
+
                         // Aktualizuj wartości w polach input
                         let newSpentHours = Math.floor(timeData.spentMinutes / 60);
                         let newSpentMinutes = timeData.spentMinutes % 60;
@@ -437,14 +480,14 @@
         // Inicjalizacja po załadowaniu
         document.addEventListener('DOMContentLoaded', function() {
             updateDisplay();
-            
+
             // Załaduj istniejące dane do pól input
             loadTimeData().then(timeData => {
                 let plannedHours = Math.floor(timeData.plannedMinutes / 60);
                 let plannedMinutes = timeData.plannedMinutes % 60;
                 let spentHours = Math.floor(timeData.spentMinutes / 60);
                 let spentMinutes = timeData.spentMinutes % 60;
-                
+
                 document.getElementById('plannedHours').value = plannedHours;
                 document.getElementById('plannedMinutes').value = plannedMinutes;
                 document.getElementById('spentHours').value = spentHours;

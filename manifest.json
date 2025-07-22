@@ -1,15 +1,16 @@
 {
   "name": "Time Tracker NM",
   "details": "Zaawansowany time tracker dla zadań Trello",
-  "author": "Twoje Imię",
-  "authorEmail": "twoj-email@example.com",
-  "authorUrl": "https://twoja-strona.com",
+  "author": "Novit-Media",
+  "authorEmail": "kontakt@novit-media.pl",
+  "authorUrl": "https://novit-media.pl",
   "capabilities": [
     "card-badges",
-    "card-buttons"
+    "card-buttons",
+    "board-buttons"
   ],
-  "connectorUrl": "./index.html",
+  "connectorUrl": "https://novit-media.github.io/time-tracker-nm-trello/index.html",
   "icon": {
-    "url": "./icon.png"
+    "url": "https://novit-media.github.io/time-tracker-nm-trello/icon.png"
   }
 }
