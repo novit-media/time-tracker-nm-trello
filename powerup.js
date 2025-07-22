@@ -6,6 +6,12 @@ function makeAsciiBar(percent){
   var bar = '█'.repeat(blocks) + '░'.repeat(10-blocks);
   return bar + ' ' + Math.round(percent) + '%';
 }
+function formatHMS(seconds){
+  var h = Math.floor(seconds/3600);
+  var m = Math.floor((seconds % 3600)/60);
+  var s = seconds % 60;
+  return [h,m,s].map(function(n){return n.toString().padStart(2,'0');}).join(':');
+}
 
 TrelloPowerUp.initialize({
   'board-buttons': function(t){
@@ -55,6 +61,17 @@ TrelloPowerUp.initialize({
         if(planned > 0){
           var percent = Math.min(100,(spent/planned)*100);
           badges.push({ text: makeAsciiBar(percent), icon: ICON });
+        }
+
+        // Live elapsed timer badge if running
+        if(running){
+          var elapsedSec = Math.floor((Date.now() - (d.timerStart || Date.now())) / 1000);
+          badges.push({
+            text: '▶ ' + formatHMS(elapsedSec),
+            icon: ICON,
+            color: 'green',
+            refresh: 5
+          });
         }
 
         // Button to open full tracker
