@@ -106,7 +106,8 @@ TrelloPowerUp.initialize({
                 data.timerRunning = false;
                 data.timerStart = 0;
                 data.history = data.history || [];
-                data.history.push({ type:'stop', minutes:diffMin, ts:new Date().toISOString(), note:'' });
+                var note = (typeof window !== 'undefined' && window.prompt) ? window.prompt('Komentarz do wpisu (opcjonalnie):','') : '';
+                data.history.push({ type:'stop', minutes:diffMin, ts:new Date().toISOString(), note: note });
                 return t.set('card','shared','timeData', data).then(function(){
                   if(typeof t.comment === 'function'){
                     return t.comment('Automatycznie dodano '+diffMin+' minut po zatrzymaniu timera.').catch(function(){});
