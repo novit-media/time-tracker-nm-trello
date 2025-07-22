@@ -23,3 +23,14 @@ Pozwala planować czas, rejestrować przepracowane minuty/godziny, uruchamiać i
     - `powerup.js` – logika UI badge’y,
     - `popup.html` – logika timera, historii,
     - `styles.css` – wygląd.
+
+
+## Zrzuty ekranu i GIF-y
+
+Poniżej przykładowe podglądy działania. Zamień ścieżki na własne (np. `docs/screens/...`) lub wstaw linki do GitHub Issues/Wiki/Cloudinary.
+
+| Podgląd                                                                       | Opis |
+|-------------------------------------------------------------------------------|---|
+| ![Badge na karcie](docs/screens/board-badges.png)                             | Badge „Time Tracker NM”, plan/spent i pasek postępu na liście kart. |
+| ![Szczegóły karty – wszystkie przyciski](docs/screens/card-detail-badges.png) | Sekcja w szczegółach karty: nagłówek, info, live timer, Start/Stop, Otwórz tracker. |
+| ![Popup – pełny tracker](docs/screens/popup-tracker.png)                         | Popup z timerem na żywo, planowaniem, historią wpisów (z edycją/usuń). |
