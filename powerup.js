@@ -1,8 +1,17 @@
 /* global TrelloPowerUp */
-var ICON='https://novit-media.github.io/time-tracker-nm-trello/icon.png';
+var ICON = 'https://novit-media.github.io/time-tracker-nm-trello/icon.png';
 
-function makeAsciiBar(p){var b=Math.round(p/10);return '█'.repeat(b)+'░'.repeat(10-b)+' '+Math.round(p)+'%';}
-function formatHMS(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return [h,m,sc].map(n=>n.toString().padStart(2,'0')).join(':');}
+function makeAsciiBar(percent){
+  var blocks = Math.round(percent/10);
+  var bar = '█'.repeat(blocks) + '░'.repeat(10-blocks);
+  return bar + ' ' + Math.round(percent) + '%';
+}
+function formatHMS(seconds){
+  var h = Math.floor(seconds/3600);
+  var m = Math.floor((seconds % 3600)/60);
+  var s = seconds % 60;
+  return [h,m,s].map(function(n){return n.toString().padStart(2,'0');}).join(':');
+}
 
 TrelloPowerUp.initialize({
   'board-buttons': function(t){
@@ -19,7 +28,6 @@ TrelloPowerUp.initialize({
       }
     }];
   },
-
   'card-buttons': function(t, opts){
     return [{
       text: '⏱️ Time Tracker NM',
@@ -35,30 +43,29 @@ TrelloPowerUp.initialize({
       }
     }];
   },
-
   'card-detail-badges': function(t, opts){
-    return t.get('card','shared','timeData',{plannedMinutes:0,spentMinutes:0,timerRunning:false,timerStart:0,history:[]})
+    return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0, history: [] })
       .then(function(d){
         var planned = d.plannedMinutes || 0;
-        var spent   = d.spentMinutes  || 0;
-        var running = d.timerRunning  || false;
-        var badges  = [];
-
-        // Header
-        badges.push({ text: 'Time Tracker NM', icon: ICON });
+        var spent = d.spentMinutes || 0;
+        var running = d.timerRunning || false;
+        var badges = [];
 
         // Info badge
-        badges.push({ text: '⏱ ' + (Math.floor(spent/60)+'h '+(spent%60)+'m') + ' / ' + (Math.floor(planned/60)+'h '+(planned%60)+'m'), icon: ICON });
+        badges.push({
+          text: '⏱ ' + (Math.floor(spent/60)+'h '+(spent%60)+'m') + ' / ' + (Math.floor(planned/60)+'h '+(planned%60)+'m'),
+          icon: ICON
+        });
 
-        // Progress
+        // Progress bar ascii
         if(planned > 0){
-          var percent = Math.min(100, (spent/planned)*100);
+          var percent = Math.min(100,(spent/planned)*100);
           badges.push({ text: makeAsciiBar(percent), icon: ICON });
         }
 
-        // Live timer
+        // Live elapsed timer badge if running
         if(running){
-          var elapsedSec = Math.floor((Date.now() - (d.timerStart || Date.now()))/1000);
+          var elapsedSec = Math.floor((Date.now() - (d.timerStart || Date.now())) / 1000);
           badges.push({
             text: '▶ ' + formatHMS(elapsedSec),
             icon: ICON,
@@ -67,9 +74,9 @@ TrelloPowerUp.initialize({
           });
         }
 
-        // Open tracker
+        // Button to open full tracker
         badges.push({
-          text: 'Otwórz tracker',
+          text: 'Time Tracker',
           icon: ICON,
           callback: function(t){
             return t.modal({
@@ -88,7 +95,7 @@ TrelloPowerUp.initialize({
             text: 'Start',
             icon: ICON,
             callback: function(t){
-              return t.get('card','shared','timeData',{plannedMinutes:0,spentMinutes:0,history:[]})
+              return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, history: [] })
               .then(function(data){
                 data.timerRunning = true;
                 data.timerStart = Date.now();
@@ -106,10 +113,10 @@ TrelloPowerUp.initialize({
             text: 'Stop',
             icon: ICON,
             callback: function(t){
-              return t.get('card','shared','timeData',{plannedMinutes:0,spentMinutes:0,timerRunning:false,timerStart:0,history:[]})
+              return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0, timerRunning:false, timerStart:0, history: [] })
               .then(function(data){
                 var now = Date.now();
-                var diffMin = Math.ceil((now - (data.timerStart||now))/60000);
+                var diffMin = Math.ceil((now - (data.timerStart||now)) / 60000);
                 data.spentMinutes = (data.spentMinutes||0) + diffMin;
                 data.timerRunning = false;
                 data.timerStart = 0;
@@ -132,13 +139,12 @@ TrelloPowerUp.initialize({
         return badges;
       });
   },
-
   'card-badges': function(t){
-    return t.get('card','shared','timeData',{plannedMinutes:0,spentMinutes:0})
+    return t.get('card','shared','timeData',{plannedMinutes:0, spentMinutes:0})
       .then(function(d){
         var badges = [];
         var planned = d.plannedMinutes || 0;
-        var spent   = d.spentMinutes  || 0;
+        var spent = d.spentMinutes || 0;
 
         if(planned){
           var ph = Math.floor(planned/60), pm = planned % 60;
@@ -149,13 +155,12 @@ TrelloPowerUp.initialize({
           badges.push({ text: 'Spent: ' + (sh? (sh+':'+sm.toString().padStart(2,'0')+'h') : sm+'m'), color: 'green' });
         }
         if(planned>0){
-          var percent = Math.min(100,(spent/planned)*100);
+          var percent = Math.min(100, (spent/planned)*100);
           badges.push({ text: makeAsciiBar(percent) });
         }
         return badges;
       });
   },
-
   'card-back-section': function(t, opts){
     return {
       title: '⏱️ Time Tracker NM',
@@ -163,7 +168,6 @@ TrelloPowerUp.initialize({
       content: { type: 'iframe', url: t.signUrl('popup.html?mode=mini'), height: 260 }
     };
   },
-
   'show-settings': function(t){
     return t.popup({
       title: 'Time Tracker NM - Ustawienia',
