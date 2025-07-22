@@ -72,6 +72,13 @@
     var currentTimerSeconds = 0;
     var isTimerRunning = false;
 
+    // heartbeat every 5s when timer running
+    setInterval(function(){
+      if(isTimerRunning){
+        t.set('card','shared','_hb', Date.now()).catch(function(){});
+      }
+    }, 5000);
+
     function postComment(msg){
       if (typeof t.comment === 'function'){
         t.comment(msg).catch(function(){});
@@ -137,6 +144,20 @@
         document.getElementById('spentMinutes').value = spent % 60;
 
         renderHistory(d.history || []);
+
+        if(d.timerRunning && d.timerStart){
+          var diffSec = Math.floor((Date.now() - d.timerStart)/1000);
+          currentTimerSeconds = diffSec;
+          isTimerRunning = true;
+          document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
+          document.getElementById('timerStatus').className = 'status running';
+          if(!timerInterval){
+            timerInterval = setInterval(function(){
+              currentTimerSeconds++;
+              document.getElementById('timerDisplay').textContent = formatTimerTime(currentTimerSeconds);
+            },1000);
+          }
+        }
       });
     }
 
@@ -155,6 +176,7 @@
       if(isTimerRunning){
         isTimerRunning = false;
         clearInterval(timerInterval);
+        timerInterval = null;
         document.getElementById('timerStatus').textContent = 'Timer zatrzymany';
         document.getElementById('timerStatus').className = 'status stopped';
       }
@@ -186,7 +208,10 @@
     document.addEventListener('DOMContentLoaded', function(){
       if(miniMode){
         document.querySelectorAll('.section').forEach(function(sec){
-          if(!sec.classList.contains('progress-section')) sec.style.display = 'none';
+          var id = sec.id || '';
+          if(id !== 'historySection' && !sec.classList.contains('progress-section') && !sec.classList.contains('timer-section')){
+            sec.style.display = 'none';
+          }
         });
         var h1 = document.querySelector('h1'); if(h1) h1.style.display='none';
         var hist = document.getElementById('historySection'); if(hist) hist.style.display='none';

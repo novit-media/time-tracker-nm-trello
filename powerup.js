@@ -74,6 +74,21 @@ TrelloPowerUp.initialize({
           });
         }
 
+        // Button to open full tracker
+        badges.push({
+          text: 'Time Tracker',
+          icon: ICON,
+          callback: function(t){
+            return t.modal({
+              title: 'Time Tracker NM',
+              url: 'popup.html',
+              accentColor: '#667eea',
+              fullscreen: true,
+              args: { cardId: opts.context.card }
+            });
+          }
+        });
+
         // Start / Stop
         if(!running){
           badges.push({
@@ -121,21 +136,6 @@ TrelloPowerUp.initialize({
           });
         }
 
-        // Button to open full tracker
-        badges.push({
-          text: 'Time Tracker',
-          icon: ICON,
-          callback: function(t){
-            return t.modal({
-              title: 'Time Tracker NM',
-              url: 'popup.html',
-              accentColor: '#667eea',
-              fullscreen: true,
-              args: { cardId: opts.context.card }
-            });
-          }
-        });
-
         return badges;
       });
   },
@@ -165,7 +165,7 @@ TrelloPowerUp.initialize({
     return {
       title: '⏱️ Time Tracker NM',
       icon: ICON,
-      content: { type: 'iframe', url: t.signUrl('popup.html?mode=mini'), height: 180 }
+      content: { type: 'iframe', url: t.signUrl('popup.html?mode=mini'), height: 260 }
     };
   },
   'show-settings': function(t){
