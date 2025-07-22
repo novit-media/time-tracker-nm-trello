@@ -8,7 +8,6 @@ TrelloPowerUp.initialize({
  'card-detail-badges':function(t,opts){
    return t.get('card','shared','timeData',{plannedMinutes:0,spentMinutes:0,timerRunning:false,timerStart:0,history:[]}).then(function(d){
      var planned=d.plannedMinutes||0;var spent=d.spentMinutes||0;var running=d.timerRunning||false;var badges=[];
-     badges.push({text:'Time Tracker NM',icon:ICON});
      badges.push({text:'⏱ '+(Math.floor(spent/60)+'h '+(spent%60)+'m')+' / '+(Math.floor(planned/60)+'h '+(planned%60)+'m'),icon:ICON});
      if(planned>0){var percent=Math.min(100,(spent/planned)*100);badges.push({text:makeAsciiBar(percent),icon:ICON});}
      if(running){var elapsedSec=Math.floor((Date.now()-(d.timerStart||Date.now()))/1000);badges.push({text:'▶ '+formatHMS(elapsedSec),icon:ICON,color:'green',refresh:1});}
