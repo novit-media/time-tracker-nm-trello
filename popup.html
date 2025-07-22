@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Tracker NM - Popup</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>⏱️ Time Tracker NM</h1>
+
+    <div class="section">
+      <h2>📋 Planowanie czasu</h2>
+      <div class="input-group">
+        <label>Godziny:</label>
+        <input type="number" id="plannedHours" min="0" max="999" value="0">
+        <label>Minuty:</label>
+        <input type="number" id="plannedMinutes" min="0" max="59" value="0">
+        <button id="btnPlanned">Zapisz planowany czas</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>⏰ Już przepracowany czas</h2>
+      <div class="input-group">
+        <label>Godziny:</label>
+        <input type="number" id="spentHours" min="0" max="999" value="0">
+        <label>Minuty:</label>
+        <input type="number" id="spentMinutes" min="0" max="59" value="0">
+        <button id="btnSpent">Zapisz przepracowany czas</button>
+      </div>
+    </div>
+
+    <div class="section progress-section">
+      <h2>📊 Postęp zadania</h2>
+      <div class="time-info">
+        <span class="time-planned">Planowane: <span id="displayPlanned">0:00</span></span>
+        <span class="time-spent">Przepracowane: <span id="displaySpent">0:00</span></span>
+        <span class="time-remaining">Pozostało: <span id="displayRemaining">0:00</span></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="section timer-section">
+      <h2>⏱️ Timer na żywo</h2>
+      <div class="timer-display" id="timerDisplay">00:00:00</div>
+      <div class="status stopped" id="timerStatus">Timer zatrzymany</div>
+      <div class="timer-buttons">
+        <button class="btn-start" id="btnStart">▶️ Start</button>
+        <button class="btn-stop" id="btnStop">⏸️ Stop</button>
+        <button class="btn-reset" id="btnReset">🔄 Reset</button>
+        <button class="btn-save" id="btnSave">💾 Dodaj do przepracowanego</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var t = TrelloPowerUp.iframe();
+
+    // state
+    var timerInterval = null;
+    var currentTimerSeconds = 0;
+    var isTimerRunning = false;
+
+    function loadTimeData() {
+      return t.get('card', 'shared', 'timeData', {
+        plannedMinutes: 0,
+        spentMinutes: 0
+      });
+    }
+
+    function saveTimeData(data) {
+      return t.set('card', 'shared', 'timeData', data);
+    }
+
+    function formatTime(totalMinutes) {
+      var h = Math.floor(totalMinutes / 60);
+      var m = totalMinutes % 60;
+      return h > 0 ? h + ':' + m.toString().padStart(2, '0') : '' + m;
+    }
+
+    function formatTimerTime(seconds) {
+      var h = Math.floor(seconds / 3600);
+      var m = Math.floor((seconds % 3600) / 60);
+      var s = seconds % 60;
+      return h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
+    }
+
+    function updateDisplay() {
+      loadTimeData().then(function(d){
+        var planned = d.plannedMinutes;
+        var spent = d.spentMinutes;
+        var remaining = Math.max(0, planned - spent);
+
+        document.getElementById('displayPlanned').textContent = formatTime(planned);
+        document.getElementById('displaySpent').textContent = formatTime(spent);
+        document.getElementById('displayRemaining').textContent = formatTime(remaining);
+
+        var progress = planned > 0 ? Math.min(100, (spent / planned) * 100) : 0;
+        document.getElementById('progressFill').style.width = progress + '%';
+
+        var pf = document.getElementById('progressFill');
+        if (progress >= 100) {
+          pf.style.background = 'linear-gradient(45deg, #ff6b6b, #ff4b2b)';
+        } else if (progress >= 80) {
+          pf.style.background = 'linear-gradient(45deg, #ffa726, #ffcc02)';
+        } else {
+          pf.style.background = 'linear-gradient(45deg, #56ab2f, #a8e6cf)';
+        }
+
+        // inputs
+        document.getElementById('plannedHours').value = Math.floor(planned/60);
+        document.getElementById('plannedMinutes').value = planned % 60;
+        document.getElementById('spentHours').value = Math.floor(spent/60);
+        document.getElementById('spentMinutes').value = spent % 60;
+      });
+    }
+
+    function startTimer() {
+      if (!isTimerRunning) {
+        isTimerRunning = true;
+        document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
+        document.getElementById('timerStatus').className = 'status running';
+
+        timerInterval = setInterval(function(){
+          currentTimerSeconds++;
+          document.getElementById('timerDisplay').textContent = formatTimerTime(currentTimerSeconds);
+        },1000);
+      }
+    }
+
+    function stopTimer() {
+      if (isTimerRunning) {
+        isTimerRunning = false;
+        clearInterval(timerInterval);
+        document.getElementById('timerStatus').textContent = 'Timer zatrzymany';
+        document.getElementById('timerStatus').className = 'status stopped';
+      }
+    }
+
+    function resetTimer() {
+      stopTimer();
+      currentTimerSeconds = 0;
+      document.getElementById('timerDisplay').textContent = formatTimerTime(0);
+    }
+
+    function addTimerToSpent() {
+      if (currentTimerSeconds > 0) {
+        var timerMinutes = Math.ceil(currentTimerSeconds / 60);
+        loadTimeData().then(function(d){
+          d.spentMinutes += timerMinutes;
+          saveTimeData(d).then(function(){
+            updateDisplay();
+            resetTimer();
+            t.alert({ message: 'Dodano ' + timerMinutes + ' minut do przepracowanego czasu!', duration: 3 });
+          });
+        });
+      } else {
+        t.alert({ message: 'Timer nie był uruchomiony!', duration: 3 });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      document.getElementById('btnPlanned').addEventListener('click', function(){
+        var h = parseInt(document.getElementById('plannedHours').value)||0;
+        var m = parseInt(document.getElementById('plannedMinutes').value)||0;
+        loadTimeData().then(function(d){
+          d.plannedMinutes = h*60 + m;
+          saveTimeData(d).then(function(){
+            updateDisplay();
+            t.alert({ message: 'Planowany czas został zapisany!', duration: 3 });
+          });
+        });
+      });
+
+      document.getElementById('btnSpent').addEventListener('click', function(){
+        var h = parseInt(document.getElementById('spentHours').value)||0;
+        var m = parseInt(document.getElementById('spentMinutes').value)||0;
+        loadTimeData().then(function(d){
+          d.spentMinutes = h*60 + m;
+          saveTimeData(d).then(function(){
+            updateDisplay();
+            t.alert({ message: 'Przepracowany czas został zapisany!', duration: 3 });
+          });
+        });
+      });
+
+      document.getElementById('btnStart').addEventListener('click', startTimer);
+      document.getElementById('btnStop').addEventListener('click', stopTimer);
+      document.getElementById('btnReset').addEventListener('click', resetTimer);
+      document.getElementById('btnSave').addEventListener('click', addTimerToSpent);
+
+      updateDisplay();
+
+      t.render(function(){
+        return t.sizeTo(document.body).catch(function(){});
+      });
+    });
+  </script>
+</body>
+</html>
