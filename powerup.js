@@ -70,24 +70,9 @@ TrelloPowerUp.initialize({
             text: '▶ ' + formatHMS(elapsedSec),
             icon: ICON,
             color: 'green',
-            refresh: 5
+            refresh: 1
           });
         }
-
-        // Button to open full tracker
-        badges.push({
-          text: 'Time Tracker',
-          icon: ICON,
-          callback: function(t){
-            return t.modal({
-              title: 'Time Tracker NM',
-              url: 'popup.html',
-              accentColor: '#667eea',
-              fullscreen: true,
-              args: { cardId: opts.context.card }
-            });
-          }
-        });
 
         // Start / Stop
         if(!running){
@@ -102,7 +87,10 @@ TrelloPowerUp.initialize({
                 data.history = data.history || [];
                 data.history.push({ type:'start', minutes:0, ts:new Date().toISOString(), note:'' });
                 return t.set('card','shared','timeData', data);
-              }).then(function(){ t.closePopup(); });
+              }).then(function(){
+                t.refresh();
+                t.closePopup();
+              });
             }
           });
         } else {
@@ -124,10 +112,28 @@ TrelloPowerUp.initialize({
                     return t.comment('Automatycznie dodano '+diffMin+' minut po zatrzymaniu timera.').catch(function(){});
                   }
                 });
-              }).then(function(){ t.closePopup(); });
+              }).then(function(){
+                t.refresh();
+                t.closePopup();
+              });
             }
           });
         }
+
+        // Button to open full tracker
+        badges.push({
+          text: 'Time Tracker',
+          icon: ICON,
+          callback: function(t){
+            return t.modal({
+              title: 'Time Tracker NM',
+              url: 'popup.html',
+              accentColor: '#667eea',
+              fullscreen: true,
+              args: { cardId: opts.context.card }
+            });
+          }
+        });
 
         return badges;
       });
