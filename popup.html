@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time Tracker NM - Popup</title>
+  <title>Time Tracker NM - UI</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -61,28 +61,20 @@
   <script>
     var t = TrelloPowerUp.iframe();
 
-    // state
     var timerInterval = null;
     var currentTimerSeconds = 0;
     var isTimerRunning = false;
 
     function loadTimeData() {
-      return t.get('card', 'shared', 'timeData', {
-        plannedMinutes: 0,
-        spentMinutes: 0
-      });
+      return t.get('card', 'shared', 'timeData', { plannedMinutes: 0, spentMinutes: 0 });
     }
-
-    function saveTimeData(data) {
-      return t.set('card', 'shared', 'timeData', data);
-    }
+    function saveTimeData(data) { return t.set('card', 'shared', 'timeData', data); }
 
     function formatTime(totalMinutes) {
       var h = Math.floor(totalMinutes / 60);
       var m = totalMinutes % 60;
       return h > 0 ? h + ':' + m.toString().padStart(2, '0') : '' + m;
     }
-
     function formatTimerTime(seconds) {
       var h = Math.floor(seconds / 3600);
       var m = Math.floor((seconds % 3600) / 60);
@@ -95,24 +87,17 @@
         var planned = d.plannedMinutes;
         var spent = d.spentMinutes;
         var remaining = Math.max(0, planned - spent);
-
         document.getElementById('displayPlanned').textContent = formatTime(planned);
         document.getElementById('displaySpent').textContent = formatTime(spent);
         document.getElementById('displayRemaining').textContent = formatTime(remaining);
 
         var progress = planned > 0 ? Math.min(100, (spent / planned) * 100) : 0;
         document.getElementById('progressFill').style.width = progress + '%';
-
         var pf = document.getElementById('progressFill');
-        if (progress >= 100) {
-          pf.style.background = 'linear-gradient(45deg, #ff6b6b, #ff4b2b)';
-        } else if (progress >= 80) {
-          pf.style.background = 'linear-gradient(45deg, #ffa726, #ffcc02)';
-        } else {
-          pf.style.background = 'linear-gradient(45deg, #56ab2f, #a8e6cf)';
-        }
+        if (progress >= 100) pf.style.background = 'linear-gradient(45deg, #ff6b6b, #ff4b2b)';
+        else if (progress >= 80) pf.style.background = 'linear-gradient(45deg, #ffa726, #ffcc02)';
+        else pf.style.background = 'linear-gradient(45deg, #56ab2f, #a8e6cf)';
 
-        // inputs
         document.getElementById('plannedHours').value = Math.floor(planned/60);
         document.getElementById('plannedMinutes').value = planned % 60;
         document.getElementById('spentHours').value = Math.floor(spent/60);
@@ -120,36 +105,32 @@
       });
     }
 
-    function startTimer() {
-      if (!isTimerRunning) {
+    function startTimer(){
+      if (!isTimerRunning){
         isTimerRunning = true;
         document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
         document.getElementById('timerStatus').className = 'status running';
-
         timerInterval = setInterval(function(){
           currentTimerSeconds++;
           document.getElementById('timerDisplay').textContent = formatTimerTime(currentTimerSeconds);
         },1000);
       }
     }
-
-    function stopTimer() {
-      if (isTimerRunning) {
+    function stopTimer(){
+      if (isTimerRunning){
         isTimerRunning = false;
         clearInterval(timerInterval);
         document.getElementById('timerStatus').textContent = 'Timer zatrzymany';
         document.getElementById('timerStatus').className = 'status stopped';
       }
     }
-
-    function resetTimer() {
+    function resetTimer(){
       stopTimer();
       currentTimerSeconds = 0;
       document.getElementById('timerDisplay').textContent = formatTimerTime(0);
     }
-
-    function addTimerToSpent() {
-      if (currentTimerSeconds > 0) {
+    function addTimerToSpent(){
+      if (currentTimerSeconds > 0){
         var timerMinutes = Math.ceil(currentTimerSeconds / 60);
         loadTimeData().then(function(d){
           d.spentMinutes += timerMinutes;
@@ -176,7 +157,6 @@
           });
         });
       });
-
       document.getElementById('btnSpent').addEventListener('click', function(){
         var h = parseInt(document.getElementById('spentHours').value)||0;
         var m = parseInt(document.getElementById('spentMinutes').value)||0;
@@ -188,7 +168,6 @@
           });
         });
       });
-
       document.getElementById('btnStart').addEventListener('click', startTimer);
       document.getElementById('btnStop').addEventListener('click', stopTimer);
       document.getElementById('btnReset').addEventListener('click', resetTimer);

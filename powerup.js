@@ -7,10 +7,11 @@ TrelloPowerUp.initialize({
       text: '⏱️ Time Tracker NM',
       icon: ICON,
       callback: function(t){
-        return t.popup({
+        return t.modal({
           title: 'Time Tracker NM',
           url: 'popup.html',
-          height: 650
+          accentColor: '#667eea',
+          fullscreen: true
         });
       }
     }];
@@ -20,30 +21,39 @@ TrelloPowerUp.initialize({
       text: '⏱️ Time Tracker NM',
       icon: ICON,
       callback: function(t){
-        return t.popup({
+        return t.modal({
           title: 'Time Tracker NM',
           url: 'popup.html',
-          height: 650,
+          fullscreen: true,
           args: { cardId: opts.context.card }
         });
       }
     }];
   },
+  'card-back-section': function(t, opts){
+    return {
+      title: '⏱️ Time Tracker NM',
+      icon: ICON,
+      content: {
+        type: 'iframe',
+        url: t.signUrl('popup.html'),
+        height: 800
+      }
+    };
+  },
   'card-badges': function(t){
-    return t.get('card', 'shared', 'timeData', {plannedMinutes:0, spentMinutes:0})
+    return t.get('card','shared','timeData',{plannedMinutes:0, spentMinutes:0})
       .then(function(d){
         var badges = [];
-        if (d.plannedMinutes && d.plannedMinutes > 0){
+        if (d.plannedMinutes){
           var ph = Math.floor(d.plannedMinutes/60);
           var pm = d.plannedMinutes % 60;
-          var ptxt = ph > 0 ? ph + ':' + pm.toString().padStart(2,'0') + 'h' : pm + 'm';
-          badges.push({ text: '⏱️ ' + ptxt, color: 'blue' });
+          badges.push({ text: '⏱️ ' + (ph? (ph+':'+pm.toString().padStart(2,'0')+'h') : pm+'m'), color: 'blue' });
         }
-        if (d.spentMinutes && d.spentMinutes > 0){
+        if (d.spentMinutes){
           var sh = Math.floor(d.spentMinutes/60);
           var sm = d.spentMinutes % 60;
-          var stxt = sh > 0 ? sh + ':' + sm.toString().padStart(2,'0') + 'h' : sm + 'm';
-          badges.push({ text: '✅ ' + stxt, color: 'green' });
+          badges.push({ text: '✅ ' + (sh? (sh+':'+sm.toString().padStart(2,'0')+'h') : sm+'m'), color: 'green' });
         }
         return badges;
       });
@@ -52,7 +62,7 @@ TrelloPowerUp.initialize({
     return t.popup({
       title: 'Time Tracker NM - Ustawienia',
       url: 'settings.html',
-      height: 400
+      height: 420
     });
   }
 });

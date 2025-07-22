@@ -8,9 +8,10 @@
     "card-badges",
     "card-buttons",
     "board-buttons",
-    "show-settings"
+    "show-settings",
+    "card-back-section"
   ],
-  "connectUrl": "https://novit-media.github.io/time-tracker-nm-trello/powerup.js",
+  "connectUrl": "https://novit-media.github.io/time-tracker-nm-trello/connector.html",
   "icon": {
     "url": "https://novit-media.github.io/time-tracker-nm-trello/icon.png"
   }
