@@ -65,38 +65,47 @@
     var currentTimerSeconds = 0;
     var isTimerRunning = false;
 
-    function loadTimeData() {
-      return t.get('card', 'shared', 'timeData', { plannedMinutes: 0, spentMinutes: 0 });
+    function postComment(msg){
+      if (typeof t.comment === 'function'){
+        t.comment(msg).catch(function(){});
+      }
     }
-    function saveTimeData(data) { return t.set('card', 'shared', 'timeData', data); }
 
-    function formatTime(totalMinutes) {
-      var h = Math.floor(totalMinutes / 60);
+    function loadTimeData(){
+      return t.get('card','shared','timeData',{ plannedMinutes:0, spentMinutes:0 });
+    }
+    function saveTimeData(data){ return t.set('card','shared','timeData',data); }
+
+    function formatTime(totalMinutes){
+      var h = Math.floor(totalMinutes/60);
       var m = totalMinutes % 60;
-      return h > 0 ? h + ':' + m.toString().padStart(2, '0') : '' + m;
+      return h>0 ? h + ':' + m.toString().padStart(2,'0') : '' + m;
     }
-    function formatTimerTime(seconds) {
-      var h = Math.floor(seconds / 3600);
-      var m = Math.floor((seconds % 3600) / 60);
+    function formatTimerTime(seconds){
+      var h = Math.floor(seconds/3600);
+      var m = Math.floor((seconds % 3600)/60);
       var s = seconds % 60;
-      return h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
+      return h.toString().padStart(2,'0') + ':' +
+             m.toString().padStart(2,'0') + ':' +
+             s.toString().padStart(2,'0');
     }
 
-    function updateDisplay() {
+    function updateDisplay(){
       loadTimeData().then(function(d){
         var planned = d.plannedMinutes;
-        var spent = d.spentMinutes;
+        var spent   = d.spentMinutes;
         var remaining = Math.max(0, planned - spent);
+
         document.getElementById('displayPlanned').textContent = formatTime(planned);
-        document.getElementById('displaySpent').textContent = formatTime(spent);
+        document.getElementById('displaySpent').textContent   = formatTime(spent);
         document.getElementById('displayRemaining').textContent = formatTime(remaining);
 
-        var progress = planned > 0 ? Math.min(100, (spent / planned) * 100) : 0;
-        document.getElementById('progressFill').style.width = progress + '%';
+        var progress = planned>0 ? Math.min(100,(spent/planned)*100) : 0;
         var pf = document.getElementById('progressFill');
-        if (progress >= 100) pf.style.background = 'linear-gradient(45deg, #ff6b6b, #ff4b2b)';
-        else if (progress >= 80) pf.style.background = 'linear-gradient(45deg, #ffa726, #ffcc02)';
-        else pf.style.background = 'linear-gradient(45deg, #56ab2f, #a8e6cf)';
+        pf.style.width = progress + '%';
+        if(progress >= 100) pf.style.background = 'linear-gradient(45deg,#ff6b6b,#ff4b2b)';
+        else if(progress >= 80) pf.style.background = 'linear-gradient(45deg,#ffa726,#ffcc02)';
+        else pf.style.background = 'linear-gradient(45deg,#56ab2f,#a8e6cf)';
 
         document.getElementById('plannedHours').value = Math.floor(planned/60);
         document.getElementById('plannedMinutes').value = planned % 60;
@@ -106,7 +115,7 @@
     }
 
     function startTimer(){
-      if (!isTimerRunning){
+      if(!isTimerRunning){
         isTimerRunning = true;
         document.getElementById('timerStatus').textContent = 'Timer uruchomiony';
         document.getElementById('timerStatus').className = 'status running';
@@ -117,7 +126,7 @@
       }
     }
     function stopTimer(){
-      if (isTimerRunning){
+      if(isTimerRunning){
         isTimerRunning = false;
         clearInterval(timerInterval);
         document.getElementById('timerStatus').textContent = 'Timer zatrzymany';
@@ -130,14 +139,15 @@
       document.getElementById('timerDisplay').textContent = formatTimerTime(0);
     }
     function addTimerToSpent(){
-      if (currentTimerSeconds > 0){
-        var timerMinutes = Math.ceil(currentTimerSeconds / 60);
+      if(currentTimerSeconds > 0){
+        var timerMinutes = Math.ceil(currentTimerSeconds/60);
         loadTimeData().then(function(d){
           d.spentMinutes += timerMinutes;
           saveTimeData(d).then(function(){
             updateDisplay();
             resetTimer();
             t.alert({ message: 'Dodano ' + timerMinutes + ' minut do przepracowanego czasu!', duration: 3 });
+            postComment('Dodano ' + timerMinutes + ' minut z timera do przepracowanego czasu.');
           });
         });
       } else {
@@ -149,25 +159,31 @@
       document.getElementById('btnPlanned').addEventListener('click', function(){
         var h = parseInt(document.getElementById('plannedHours').value)||0;
         var m = parseInt(document.getElementById('plannedMinutes').value)||0;
+        var total = h*60 + m;
         loadTimeData().then(function(d){
-          d.plannedMinutes = h*60 + m;
+          d.plannedMinutes = total;
           saveTimeData(d).then(function(){
             updateDisplay();
             t.alert({ message: 'Planowany czas został zapisany!', duration: 3 });
+            postComment('Planowany czas ustawiony na ' + total + ' minut.');
           });
         });
       });
+
       document.getElementById('btnSpent').addEventListener('click', function(){
         var h = parseInt(document.getElementById('spentHours').value)||0;
         var m = parseInt(document.getElementById('spentMinutes').value)||0;
+        var total = h*60 + m;
         loadTimeData().then(function(d){
-          d.spentMinutes = h*60 + m;
+          d.spentMinutes = total;
           saveTimeData(d).then(function(){
             updateDisplay();
             t.alert({ message: 'Przepracowany czas został zapisany!', duration: 3 });
+            postComment('Zaktualizowano przepracowany czas do ' + total + ' minut.');
           });
         });
       });
+
       document.getElementById('btnStart').addEventListener('click', startTimer);
       document.getElementById('btnStop').addEventListener('click', stopTimer);
       document.getElementById('btnReset').addEventListener('click', resetTimer);
@@ -175,9 +191,7 @@
 
       updateDisplay();
 
-      t.render(function(){
-        return t.sizeTo(document.body).catch(function(){});
-      });
+      t.render(function(){ return t.sizeTo(document.body).catch(function(){}); });
     });
   </script>
 </body>

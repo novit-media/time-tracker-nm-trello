@@ -7,11 +7,10 @@ TrelloPowerUp.initialize({
       text: '⏱️ Time Tracker NM',
       icon: ICON,
       callback: function(t){
-        return t.modal({
+        return t.popup({
           title: 'Time Tracker NM',
           url: 'popup.html',
-          accentColor: '#667eea',
-          fullscreen: true
+          height: 700
         });
       }
     }];
@@ -21,10 +20,24 @@ TrelloPowerUp.initialize({
       text: '⏱️ Time Tracker NM',
       icon: ICON,
       callback: function(t){
-        return t.modal({
+        return t.popup({
           title: 'Time Tracker NM',
           url: 'popup.html',
-          fullscreen: true,
+          height: 700,
+          args: { cardId: opts.context.card }
+        });
+      }
+    }];
+  },
+  'card-detail-badges': function(t, opts){
+    return [{
+      text: '⏱️ Time Tracker',
+      icon: ICON,
+      callback: function(t){
+        return t.popup({
+          title: 'Time Tracker NM',
+          url: 'popup.html',
+          height: 700,
           args: { cardId: opts.context.card }
         });
       }

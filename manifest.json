@@ -5,11 +5,12 @@
   "authorEmail": "kontakt@novit-media.pl",
   "authorUrl": "https://novit-media.pl",
   "capabilities": [
-    "card-badges",
-    "card-buttons",
     "board-buttons",
-    "show-settings",
-    "card-back-section"
+    "card-buttons",
+    "card-badges",
+    "card-back-section",
+    "card-detail-badges",
+    "show-settings"
   ],
   "connectUrl": "https://novit-media.github.io/time-tracker-nm-trello/connector.html",
   "icon": {
