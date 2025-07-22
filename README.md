@@ -25,9 +25,9 @@ Pozwala planować czas, rejestrować przepracowane minuty/godziny, uruchamiać i
     - `styles.css` – wygląd.
 
 
-## Zrzuty ekranu i GIF-y
+## Zrzuty ekranu 
 
-Poniżej przykładowe podglądy działania. Zamień ścieżki na własne (np. `docs/screens/...`) lub wstaw linki do GitHub Issues/Wiki/Cloudinary.
+Poniżej przykładowe podglądy działania.
 
 | Podgląd                                                                       | Opis |
 |-------------------------------------------------------------------------------|---|
