@@ -1,32 +1,23 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:24px;background:#f4f5f7;min-height:100vh;color:#333;box-sizing:border-box;}
 *{box-sizing:border-box;}
-.container{background:#fff;border:1px solid #dfe1e6;border-radius:4px;padding:24px;margin:0 auto;width:100%;box-shadow:none;}
+.container{background:#fff;border:1px solid #dfe1e6;border-radius:4px;padding:24px;margin:0 auto;width:100%;}
 h1{text-align:center;color:#172b4d;margin-bottom:24px;font-size:20px;font-weight:600;}
 .section{background:#fff;border-radius:3px;padding:16px;margin-bottom:16px;border-left:3px solid #0052CC;}
 .section h2{margin:0 0 12px 0;color:#172b4d;font-size:16px;font-weight:600;}
 .input-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 label{min-width:100px;font-weight:500;color:#5e6c84;font-size:14px;}
-input[type=number]{border:1px solid #dfe1e6;border-radius:3px;padding:6px 8px;width:80px;font-size:14px;transition:border-color .2s;}
-input[type=number]:focus{outline:none;border-color:#0052CC;box-shadow:0 0 0 2px rgba(0,82,204,.2);}
-button{background:#0052CC;color:#fff;border:none;border-radius:3px;padding:6px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s;margin-right:8px;margin-bottom:8px;}
+input[type=number]{border:1px solid #dfe1e6;border-radius:3px;padding:6px 8px;width:80px;font-size:14px;}
+button{background:#0052CC;color:#fff;border:none;border-radius:3px;padding:6px 12px;font-size:14px;margin-right:8px;margin-bottom:8px;cursor:pointer;}
 button:hover{background:#0747A6;}
 .timer-section{text-align:center;}
 .timer-display{font-size:32px;font-weight:600;color:#172b4d;margin:16px 0;font-family:'Courier New',monospace;}
-.progress-section{margin:16px 0;}
 .progress-bar{width:100%;height:10px;background:#dfe1e6;border-radius:3px;overflow:hidden;margin:8px 0;}
 .progress-fill{height:100%;background:#36B37E;transition:width .3s ease;border-radius:3px;}
 .time-info{display:flex;justify-content:space-between;margin:8px 0;font-weight:500;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:#172b4d;}
-.time-planned{color:#0052CC;}
-.time-spent{color:#36B37E;}
-.time-remaining{color:#FF5630;}
-.status{text-align:center;padding:12px;border-radius:3px;margin:12px 0;font-weight:600;font-size:14px;}
+.status{padding:12px;border-radius:3px;margin:12px 0;font-weight:600;font-size:14px;text-align:center;}
 .status.running{background:rgba(54,179,126,.15);color:#006644;border:1px solid #36B37E;}
 .status.stopped{background:rgba(255,86,48,.15);color:#BF2600;border:1px solid #FF5630;}
-.timer-buttons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
-.btn-start{background:#36B37E;} .btn-stop{background:#FF5630;} .btn-reset{background:#FFAB00;} .btn-save{background:#0052CC;}
 .history-list{list-style:none;margin:0;padding:0;font-size:13px;color:#5e6c84;max-height:200px;overflow-y:auto;border-top:1px solid #dfe1e6;padding-top:8px;}
 .history-list li{margin-bottom:6px;}
-.history-list li button.hist-btn-edit,.history-list li button.hist-btn-del{margin-left:6px;padding:2px 6px;font-size:11px;line-height:1.4;background:#0052CC;color:#fff;border:none;border-radius:3px;cursor:pointer;}
+.history-list li button.hist-btn-edit,.history-list li button.hist-btn-del{margin-left:6px;padding:2px 6px;font-size:11px;background:#0052CC;color:#fff;border:none;border-radius:3px;cursor:pointer;}
 .history-list li button.hist-btn-del{background:#FF5630;}
-.history-list li button.hist-btn-edit:hover{background:#0747A6;}
-.history-list li button.hist-btn-del:hover{background:#BF2600;}
